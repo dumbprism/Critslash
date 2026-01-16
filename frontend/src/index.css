@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Apple Garamond Regular */
+@font-face {
+  font-family: "apple-garamond";
+  src: url("/fonts/AppleGaramond.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Apple Garamond Bold */
+@font-face {
+  font-family: "apple-garamond-bold";
+  src: url("/fonts/AppleGaramond-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: bold;
+}
+
+/* Apple Garamond Italic */
+@font-face {
+  font-family: "apple-garamond";
+  src: url("/fonts/AppleGaramond-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Apple Garamond Bold Italic */
+
+
+/* Apple Garamond Light */
+@font-face {
+  font-family: "apple-garamond-light";
+  src: url("/fonts/AppleGaramond-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+/* Apple Garamond Light Italic */
+@font-face {
+  font-family: "apple-garamond";
+  src: url("/fonts/AppleGaramond-LightItalic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+}
+
+:root {
+  font-family: "apple-garamond";
+
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Light mode colors (default) */
+  --background: #D9D9D9;
+  --foreground: #0e0e0e;
+}
+
+.dark {
+  /* Dark mode colors */
+  --background: #0e0e0e;
+  --foreground: #D9D9D9;
+}
+
+body {
+  margin: 10px;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
