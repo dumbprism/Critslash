@@ -10,7 +10,7 @@ function Roast() {
     const [details, setDetails] = useState<Film[]>([])
 
     useEffect(() => {
-        fetch("http://localhost:8080/films/VincentGiga")
+        fetch("http://localhost:8080/films/vincentgiga")
             .then(res => {
                 if (!res.ok) {
                     throw new Error("Network response was not ok")

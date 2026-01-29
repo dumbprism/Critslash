@@ -3,17 +3,18 @@ import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import Navbar from "./elements/Navbar"
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { TextGenerateEffect } from "./components/ui/text-generate-effect";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 function Login() {
+    const navigate = useNavigate();
     const [showInput, setShowInput] = useState(false);
     const [storeUsername, setUsername] = useState("")
     const [storeDetails, setDetails] = useState<any>(null)  // Changed to accept any data type
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         setUsername(e.target.value)
@@ -35,7 +36,7 @@ function Login() {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    throw new Error("User not found. Please ensure you have typed the correct username.")
+                    throw new Error("Username not found")
                 }
                 throw new Error("Failed to fetch user details. Please try again.")
             }
@@ -44,15 +45,18 @@ function Login() {
 
             // Check if data is null or empty
             if (!data || (Array.isArray(data) && data.length === 0)) {
-                throw new Error("No data found for this user. The username might not exist or has no films.")
+                throw new Error("Username not found")
             }
 
             setDetails(data)
             setError(null)
             console.log("Status OK - Data received:", data)
 
+            // Navigate to loading page with film data
+            navigate('/loading', { state: { films: data } })
+
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "User not found. Please ensure you have typed the correct username."
+            const errorMessage = error instanceof Error ? error.message : "Username not found"
             setError(errorMessage)
             console.error("Error fetching details:", error)
         } finally {
@@ -103,7 +107,7 @@ function Login() {
                                     <Input
                                         type="text"
                                         placeholder="Enter your username"
-                                        className="w-48"
+                                        className={`w-48 ${error ? 'border-red-500 border-2 focus-visible:ring-red-500' : ''}`}
                                         value={storeUsername}
                                         onChange={handleChange}
                                         disabled={isLoading}
@@ -123,10 +127,7 @@ function Login() {
                                     </Button>
                                 </div>
                                 {error && (
-                                    <Alert variant={"destructive"}>
-                                        <AlertTitle>Error</AlertTitle>
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
+                                    <p className="text-red-500 text-sm font-medium">{error}</p>
                                 )}
                             </div>
                         </motion.div>
