@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -19,7 +20,8 @@ type FilmDetails struct {
 
 func GetDetails(ctx *gin.Context) {
 	username := ctx.Param("usrnm")
-	url := "https://letterboxd.com/" + username + "/rss/"
+	BASE_URL := os.Getenv("BASE_URL")
+	url := BASE_URL + username + "/rss/"
 
 	// Fetch RSS feed
 	resp, err := http.Get(url)
@@ -58,7 +60,7 @@ func GetDetails(ctx *gin.Context) {
 
 		// Use memberRating if available
 		if item.Rating != "" {
-			rating = item.Rating + " stars"
+			rating = item.Rating + "/5.0"
 		}
 
 		// Extract poster from description
@@ -106,10 +108,10 @@ func extractPoster(description string) string {
 	// Regex to find image src
 	re := regexp.MustCompile(`<img src="([^"]+)"`)
 	matches := re.FindStringSubmatch(description)
-	
+
 	if len(matches) > 1 {
 		return matches[1]
 	}
-	
+
 	return ""
 }
