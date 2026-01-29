@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-
+import { ThemeProvider } from "./components/theme-provider"
+import Navbar from "./elements/Navbar"
 interface Film {
     film_name: string
     rating: string
@@ -22,6 +23,9 @@ function Roast() {
     }, [])
     return (
         <>
+            <ThemeProvider defaultTheme="dark">
+                <Navbar />
+            </ThemeProvider>
             {
                 details.map((detail) => {
                     return (
