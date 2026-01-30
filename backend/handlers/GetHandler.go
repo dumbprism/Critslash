@@ -7,16 +7,11 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"roast/dtos"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
-
-type FilmDetails struct {
-	FilmName   string `json:"film_name"`
-	Rating     string `json:"rating"`
-	FilmPoster string `json:"film_poster"`
-}
 
 func GetDetails(ctx *gin.Context) {
 	username := ctx.Param("usrnm")
@@ -48,7 +43,7 @@ func GetDetails(ctx *gin.Context) {
 	xml.Unmarshal(body, &data)
 
 	// Extract films
-	var films []FilmDetails
+	var films []types.FilmDetails
 	for _, item := range data.Channel.Items {
 		// Extract film name and rating from title
 		filmName, rating := parseTitle(item.Title)
@@ -60,14 +55,14 @@ func GetDetails(ctx *gin.Context) {
 
 		// Use memberRating if available
 		if item.Rating != "" {
-			rating = item.Rating + "/5.0"
+			rating = item.Rating + " / 5.0"
 		}
 
 		// Extract poster from description
 		poster := extractPoster(item.Description)
 
 		if filmName != "" {
-			films = append(films, FilmDetails{
+			films = append(films, types.FilmDetails{
 				FilmName:   filmName,
 				Rating:     rating,
 				FilmPoster: poster,
@@ -77,6 +72,7 @@ func GetDetails(ctx *gin.Context) {
 
 	// Return JSON
 	ctx.JSON(http.StatusOK, films)
+
 }
 
 // parseTitle extracts film name and rating from title like "Raging Bull, 1980 - ★★★★★"

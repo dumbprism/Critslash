@@ -68,9 +68,12 @@ function Loading() {
 
     return (
         <div className="min-h-screen">
-            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-                <Navbar />
-            </ThemeProvider>
+            <div className="relative z-110">
+                <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                    <Navbar />
+                </ThemeProvider>
+            </div>
+
 
             <MultiStepLoader
                 loadingStates={loadingStates}
@@ -81,16 +84,16 @@ function Loading() {
 
             {/* Film Poster Marquee */}
             {filmsWithPosters.length > 0 && (
-                <div className="fixed bottom-0 left-0 right-0 pb-4 pointer-events-none z-[120]">
+                <div className="fixed bottom-0 left-0 right-0 pb-4 pointer-events-none z-140">
                     <Marquee className="py-10">
                         <MarqueeContent>
                             {filmsWithPosters.map((film, index) => (
                                 <MarqueeItem key={index} className="px-3">
-                                    <div className="relative group">
+                                    <div className="relative group pointer-events-auto">
                                         <img
                                             src={film.film_poster}
                                             alt={film.film_name}
-                                            className="h-48 w-auto rounded-lg shadow-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                                            className="h-48 w-auto rounded-lg shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                                         />
                                         <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <p className="text-xs text-white font-medium truncate">{film.film_name}</p>

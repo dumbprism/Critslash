@@ -20,10 +20,11 @@ func main() {
 			c.AbortWithStatus(204)
 			return
 		}
-
 		c.Next()
 	})
 
 	router.GET("/films/:usrnm", handlers.GetDetails)
+	// router.POST("/roast", handlers.RoastHandler)
 	router.Run()
+
 }

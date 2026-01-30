@@ -7,6 +7,8 @@ interface Film {
     film_poster: string
 }
 
+
+
 function Roast() {
     const [details, setDetails] = useState<Film[]>([])
 
