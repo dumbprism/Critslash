@@ -1,42 +1,33 @@
 import { useEffect, useState } from "react"
+import { useLocation } from "react-router-dom"
 import { ThemeProvider } from "./components/theme-provider"
 import Navbar from "./elements/Navbar"
-interface Film {
-    film_name: string
-    rating: string
-    film_poster: string
-}
-
-
 
 function Roast() {
-    const [details, setDetails] = useState<Film[]>([])
+    const location = useLocation()
+    const [roast, setRoast] = useState<string>("")
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        fetch("http://localhost:8080/films/vincentgiga")
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error("Network response was not ok")
-                }
-                return res.json()
-            })
-            .then(data => setDetails(data))
-            .catch(error => console.error("Error fetching data:", error))
-    }, [])
+        const roastData = location.state?.roast
+        const errorData = location.state?.error
+
+        if (errorData) {
+            setError(errorData)
+        } else if (roastData) {
+            setRoast(roastData.roast || JSON.stringify(roastData))
+        }
+    }, [location.state])
     return (
         <>
             <ThemeProvider defaultTheme="dark">
                 <Navbar />
             </ThemeProvider>
-            {
-                details.map((detail) => {
-                    return (
-                        <div key={detail.film_name}>
-                            <h1>{detail.film_name}</h1>
-                        </div>
-                    )
-                })
-            }
+
+            <div className="roast-container p-8">
+                {error && <p className="text-red-500">{error}</p>}
+                {roast && <div className="roast-content">{roast}</div>}
+            </div>
         </>
     )
 }
