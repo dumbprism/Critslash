@@ -26,22 +26,21 @@ function ScoreBar({ score }: { score: number }) {
     return (
         <div className="w-full flex flex-col gap-3">
             <div className="flex justify-between items-baseline">
-                <span className="text-black/50 dark:text-white/50 text-sm font-[apple-garamond-light] uppercase tracking-widest">
+                <span className="text-black/50 dark:text-white/50 text-xs sm:text-sm font-[apple-garamond-light] uppercase tracking-widest">
                     Taste Score
                 </span>
                 <motion.span
-                    className="text-4xl font-bold"
+                    className="text-3xl sm:text-4xl font-bold"
                     style={{ color }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6, duration: 0.4 }}
                 >
                     {displayed}
-                    <span className="text-xl text-black/30 dark:text-white/30">/100</span>
+                    <span className="text-lg sm:text-xl text-black/30 dark:text-white/30">/100</span>
                 </motion.span>
             </div>
 
-            {/* Track */}
             <div className="h-2 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
                 <motion.div
                     className="h-full rounded-full"
@@ -76,23 +75,22 @@ function Roast() {
         <ThemeProvider>
             <Navbar />
 
-            <div className="min-h-screen flex flex-col items-center justify-center px-6 py-24">
+            <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-16 md:py-24">
                 {error && (
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-red-500 text-lg text-center"
+                        className="text-red-500 text-base sm:text-lg text-center"
                     >
                         {error}
                     </motion.p>
                 )}
 
                 {roast && (
-                    <div className="max-w-2xl w-full flex flex-col gap-8">
+                    <div className="max-w-2xl w-full flex flex-col gap-6 md:gap-8">
                         {/* Title */}
                         <motion.h1
-                            className="text-5xl md:text-6xl font-[apple-garamond-light] leading-tight text-center
-                                       text-black/90 dark:text-white/90"
+                            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-[apple-garamond-light] leading-tight text-center text-black/90 dark:text-white/90"
                             initial={{ opacity: 0, y: 24 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, ease: "easeOut" }}
@@ -102,18 +100,13 @@ function Roast() {
 
                         {/* Roast card */}
                         <motion.div
-                            className="border border-black/10 dark:border-white/10
-                                       rounded-2xl p-8
-                                       bg-black/5 dark:bg-white/5
-                                       backdrop-blur-sm flex flex-col gap-5"
+                            className="border border-black/10 dark:border-white/10 rounded-2xl p-5 sm:p-8 bg-black/5 dark:bg-white/5 backdrop-blur-sm flex flex-col gap-4 sm:gap-5"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25, duration: 0.6 }}
                         >
                             {roast.roast.split("\n\n").map((para, i) => (
-                                <p key={i} className="text-lg md:text-xl leading-relaxed
-                                                      text-black/80 dark:text-white/85
-                                                      font-[apple-garamond-light]">
+                                <p key={i} className="text-base sm:text-lg md:text-xl leading-relaxed text-black/80 dark:text-white/85 font-[apple-garamond-light]">
                                     {para}
                                 </p>
                             ))}

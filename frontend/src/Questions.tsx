@@ -191,7 +191,7 @@ export default function Questions() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: entry.answered ? 0 : 1, y: 0 }}
                                         transition={{ duration: 0.25 }}
-                                        className="grid grid-cols-2 gap-2 pl-1"
+                                        className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-1"
                                     >
                                         {questions[entry.qIndex].options.map(option => (
                                             <button
