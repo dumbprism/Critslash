@@ -65,7 +65,7 @@ function TypingIndicator() {
             {[0, 1, 2].map(i => (
                 <motion.span
                     key={i}
-                    className="w-2 h-2 rounded-full bg-white/40 block"
+                    className="w-2 h-2 rounded-full bg-black/30 dark:bg-white/40 block"
                     animate={{ y: [0, -5, 0] }}
                     transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
                 />
@@ -87,7 +87,6 @@ export default function Questions() {
     const [locked, setLocked] = useState(false)
     const bottomRef = useRef<HTMLDivElement>(null)
 
-    // Auto-scroll to bottom whenever chat updates
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [chat])
@@ -100,12 +99,10 @@ export default function Questions() {
         const updatedAnswers = { ...answers, [q.id]: option }
         setAnswers(updatedAnswers)
 
-        // Mark options as answered so chips fade out
         setChat(prev =>
             prev.map(e => e.id === `opts-${qIndex}` ? { ...e, answered: true } as ChatEntry : e)
         )
 
-        // Append user bubble
         setTimeout(() => {
             setChat(prev => [...prev, { kind: "user", id: `user-${qIndex}`, text: option }])
         }, 150)
@@ -119,7 +116,6 @@ export default function Questions() {
             return
         }
 
-        // Show typing indicator, then next question
         setTimeout(() => {
             setChat(prev => [...prev, { kind: "typing", id: "typing-next" }])
         }, 500)
@@ -136,7 +132,7 @@ export default function Questions() {
     }
 
     return (
-        <ThemeProvider defaultTheme="dark">
+        <ThemeProvider>
             <Navbar />
 
             <div className="flex flex-col items-center min-h-screen pt-20 pb-10 px-4">
@@ -152,11 +148,11 @@ export default function Questions() {
                                         transition={{ duration: 0.3 }}
                                         className="flex flex-col gap-1 items-start"
                                     >
-                                        <span className="text-xs text-white/30 font-[apple-garamond-light] ml-1">
+                                        <span className="text-xs text-black/40 dark:text-white/30 font-[apple-garamond-light] ml-1">
                                             CritSlash
                                         </span>
-                                        <div className="bg-white/8 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                                            <p className="text-white/90 font-[apple-garamond-light] text-base leading-snug">
+                                        <div className="bg-black/5 dark:bg-white/8 border border-black/10 dark:border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                                            <p className="text-black/90 dark:text-white/90 font-[apple-garamond-light] text-base leading-snug">
                                                 {entry.text}
                                             </p>
                                         </div>
@@ -173,10 +169,10 @@ export default function Questions() {
                                         exit={{ opacity: 0 }}
                                         className="flex flex-col gap-1 items-start"
                                     >
-                                        <span className="text-xs text-white/30 font-[apple-garamond-light] ml-1">
+                                        <span className="text-xs text-black/40 dark:text-white/30 font-[apple-garamond-light] ml-1">
                                             CritSlash
                                         </span>
-                                        <div className="bg-white/8 border border-white/10 rounded-2xl rounded-tl-sm">
+                                        <div className="bg-black/5 dark:bg-white/8 border border-black/10 dark:border-white/10 rounded-2xl rounded-tl-sm">
                                             <TypingIndicator />
                                         </div>
                                     </motion.div>
@@ -197,9 +193,14 @@ export default function Questions() {
                                                 key={option}
                                                 disabled={entry.answered || locked}
                                                 onClick={() => handleSelect(option, entry.qIndex)}
-                                                className="text-left px-4 py-3 rounded-xl border border-white/10 bg-white/5
-                                                           font-[apple-garamond-light] text-sm text-white/75 leading-snug
-                                                           hover:border-[#424FFF]/60 hover:bg-[#424FFF]/8 hover:text-white
+                                                className="text-left px-4 py-3 rounded-xl
+                                                           border border-black/10 dark:border-white/10
+                                                           bg-black/5 dark:bg-white/5
+                                                           font-[apple-garamond-light] text-sm
+                                                           text-black/70 dark:text-white/75
+                                                           leading-snug
+                                                           hover:border-[#424FFF]/70 hover:bg-[#424FFF]/8
+                                                           hover:text-[#424FFF] dark:hover:text-white
                                                            transition-all duration-150 disabled:cursor-default"
                                             >
                                                 {option}
@@ -231,7 +232,6 @@ export default function Questions() {
                         })}
                     </AnimatePresence>
 
-                    {/* Scroll anchor */}
                     <div ref={bottomRef} />
                 </div>
             </div>
