@@ -130,6 +130,57 @@ JSON only: {"title":"...","roast":"p1\n\np2\n\np3\n\np4","score":42}`,
 	return &roast, nil
 }
 
+func GenerateRecommendation(req types.RecommendRequest) (*types.Recommendation, error) {
+	if err := ensureClient(); err != nil {
+		return nil, err
+	}
+
+	watched := filmList(req.Films)
+
+	var pref string
+	if req.Surprise {
+		pref = "Pick anything that fits their taste. Be bold and unexpected."
+	} else {
+		parts := []string{}
+		if req.Genre != "" {
+			parts = append(parts, "Genre: "+req.Genre)
+		}
+		if req.Mood != "" {
+			parts = append(parts, "Mood: "+req.Mood)
+		}
+		if len(parts) == 0 {
+			pref = "Pick anything that fits their taste."
+		} else {
+			pref = strings.Join(parts, ", ")
+		}
+	}
+
+	prompt := fmt.Sprintf(
+		`You are a friendly film recommendation AI. Suggest ONE film for this person.
+
+Films they already watched (DO NOT recommend any of these): %s
+Their preference: %s
+
+Rules:
+- Must not be any film in the watched list above
+- Use simple, everyday language
+- Keep it fun and personal
+
+Return JSON only: {"title":"...","year":"2019","director":"...","description":"1-2 sentence plot summary","reason":"1-2 fun sentences on why this fits them"}`,
+		watched, pref)
+
+	raw, err := call(prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	var rec types.Recommendation
+	if err := json.Unmarshal([]byte(raw), &rec); err != nil {
+		return nil, fmt.Errorf("parse recommendation: %w", err)
+	}
+	return &rec, nil
+}
+
 func stripFences(s string) string {
 	if !strings.HasPrefix(s, "```") {
 		return s

@@ -5,6 +5,7 @@ import Loading from './Loading'
 import Questions from './Questions'
 import Generating from './Generating'
 import Roast from './Roast'
+import Recommendations from './Recommendations'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/questions" element={<Questions />} />
         <Route path="/generating" element={<Generating />} />
         <Route path="/roast" element={<Roast />} />
+        <Route path="/recommendations" element={<Recommendations />} />
       </Routes>
     </BrowserRouter>
   )

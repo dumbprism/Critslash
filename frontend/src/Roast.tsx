@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { ThemeProvider } from "./components/theme-provider"
 import Navbar from "./elements/Navbar"
 import { motion } from "motion/react"
-import { Share2, Loader2 } from "lucide-react"
+import { Share2, Loader2, Clapperboard } from "lucide-react"
 
 interface RoastFmt {
     title: string
@@ -126,8 +126,10 @@ function ShareCard({ roast, cardRef }: { roast: RoastFmt; cardRef: React.RefObje
 
 function Roast() {
     const location = useLocation()
-    const roast = (location.state?.roast as RoastFmt) ?? null
-    const error = (location.state?.error as string) ?? null
+    const navigate = useNavigate()
+    const roast  = (location.state?.roast  as RoastFmt) ?? null
+    const error  = (location.state?.error  as string)   ?? null
+    const films  = (location.state?.films  as { film_name: string; rating: string; film_poster: string }[]) ?? []
 
     const shareCardRef = useRef<HTMLDivElement>(null)
     const [sharing, setSharing] = useState(false)
@@ -223,6 +225,25 @@ function Roast() {
                         >
                             <ScoreBar score={roast.score} />
                         </motion.div>
+
+                        {/* Recommendations CTA */}
+                        <motion.button
+                            onClick={() => navigate("/recommendations", { state: { films } })}
+                            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl
+                                       border border-black/10 dark:border-white/10
+                                       bg-black/5 dark:bg-white/5
+                                       text-black/70 dark:text-white/70
+                                       font-[apple-garamond-light] text-base
+                                       hover:border-[#424FFF]/60 hover:bg-[#424FFF]/8
+                                       hover:text-[#424FFF] dark:hover:text-white
+                                       transition-all duration-200"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.65, duration: 0.5 }}
+                        >
+                            <Clapperboard size={16} />
+                            Recommend me a film
+                        </motion.button>
                     </div>
                 )}
             </div>

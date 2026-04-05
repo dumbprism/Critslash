@@ -27,3 +27,18 @@ type RoastFmt struct {
 	Roast string `json:"roast"`
 	Score int    `json:"score"`
 }
+
+type RecommendRequest struct {
+	Films    []FilmDetails `json:"films"`
+	Genre    string        `json:"genre"`
+	Mood     string        `json:"mood"`
+	Surprise bool          `json:"surprise"`
+}
+
+type Recommendation struct {
+	Title       string `json:"title"`
+	Year        string `json:"year"`
+	Director    string `json:"director"`
+	Description string `json:"description"`
+	Reason      string `json:"reason"`
+}

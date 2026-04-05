@@ -42,9 +42,9 @@ export default function Generating() {
         if (hasNavigatedRef.current) return
         hasNavigatedRef.current = true
         if (roastErrorRef.current) {
-            navigate("/roast", { state: { error: roastErrorRef.current } })
+            navigate("/roast", { state: { error: roastErrorRef.current, films } })
         } else {
-            navigate("/roast", { state: { roast: roastResultRef.current } })
+            navigate("/roast", { state: { roast: roastResultRef.current, films } })
         }
     }
 
