@@ -1,2 +1,17 @@
-.env.local
+# env
 .env
+.env.local
+
+# dependencies
+node_modules/
+frontend/node_modules/
+
+# build outputs
+dist/
+frontend/dist/
+
+# Go binary
+backend/roast
+
+# pnpm
+pnpm-debug.log

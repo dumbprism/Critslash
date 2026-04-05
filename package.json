@@ -1,0 +1,16 @@
+{
+  "name": "critslash",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "dev:backend": "cd backend && go run main.go",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm build:frontend && pnpm build:backend",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "cd backend && go build -o ../dist/server ./..."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -69,19 +69,8 @@ function ScoreBar({ score }: { score: number }) {
 
 function Roast() {
     const location = useLocation()
-    const [roast, setRoast] = useState<RoastFmt | null>(null)
-    const [error, setError] = useState<string | null>(null)
-
-    useEffect(() => {
-        const roastData = location.state?.roast as RoastFmt | undefined
-        const errorData = location.state?.error as string | undefined
-
-        if (errorData) {
-            setError(errorData)
-        } else if (roastData) {
-            setRoast(roastData)
-        }
-    }, [location.state])
+    const roast = (location.state?.roast as RoastFmt) ?? null
+    const error = (location.state?.error as string) ?? null
 
     return (
         <ThemeProvider defaultTheme="dark">

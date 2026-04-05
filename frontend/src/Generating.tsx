@@ -31,13 +31,16 @@ export default function Generating() {
     const answers = (location.state?.answers as Record<string, string>) || {}
 
     const [loading] = useState(true)
-    const roastResultRef = useRef<RoastFmt | null>(null)
-    const roastErrorRef  = useRef<string | null>(null)
-    const timerDoneRef   = useRef(false)
-    const apiFetchedRef  = useRef(false)
+    const roastResultRef  = useRef<RoastFmt | null>(null)
+    const roastErrorRef   = useRef<string | null>(null)
+    const timerDoneRef    = useRef(false)
+    const apiFetchedRef   = useRef(false)
+    const hasNavigatedRef = useRef(false)
 
     function tryNavigate() {
         if (!timerDoneRef.current || !apiFetchedRef.current) return
+        if (hasNavigatedRef.current) return
+        hasNavigatedRef.current = true
         if (roastErrorRef.current) {
             navigate("/roast", { state: { error: roastErrorRef.current } })
         } else {
