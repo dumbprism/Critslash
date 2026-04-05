@@ -1,12 +1,18 @@
 package main
 
 import (
+	"log"
 	"roast/handlers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
 	router := gin.Default()
 
 	// CORS middleware
@@ -24,7 +30,7 @@ func main() {
 	})
 
 	router.GET("/films/:usrnm", handlers.GetDetails)
-	// router.POST("/roast", handlers.RoastHandler)
+	router.POST("/roast", handlers.RoastHandler)
 	router.Run()
 
 }

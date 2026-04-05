@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"roast/dtos"
 	"strings"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -84,7 +83,7 @@ func parseTitle(title string) (string, string) {
 	rating := "Not Rated"
 
 	if len(parts) > 1 {
-		// Count stars
+		// Count stars 
 		stars := strings.Count(parts[1], "★")
 		if stars > 0 {
 			rating = fmt.Sprintf("%d stars", stars)

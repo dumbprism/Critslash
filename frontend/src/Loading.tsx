@@ -16,7 +16,6 @@ function Loading() {
     const navigate = useNavigate();
     const allFilms = (location.state?.films as Film[]) || [];
 
-    // Filter out films with empty or invalid posters
     const filmsWithPosters = useMemo(() => {
         return allFilms.filter(film =>
             film.film_poster &&
@@ -26,7 +25,6 @@ function Loading() {
         );
     }, [allFilms]);
 
-    // Select a random film name from films with valid posters
     const randomFilm = useMemo(() => {
         if (filmsWithPosters.length === 0) return null;
         const randomIndex = Math.floor(Math.random() * filmsWithPosters.length);
@@ -34,37 +32,22 @@ function Loading() {
     }, [filmsWithPosters]);
 
     const loadingStates = [
-        {
-            text: "Analyzing your films",
-        },
-        {
-            text: "Analyzing your ratings",
-        },
-        {
-            text: randomFilm ? `Ewwww.. I can see ${randomFilm.film_name}` : "Looking at your films",
-        },
-        {
-            text: "Almost there"
-        },
-        {
-            text: "Generating roast...",
-        },
+        { text: "Scanning your Letterboxd..." },
+        { text: "Cataloguing your questionable choices" },
+        { text: randomFilm ? `Oh no... I see ${randomFilm.film_name}` : "Inspecting the damage" },
+        { text: "Almost ready to judge you" },
+        { text: "Preparing your questionnaire..." },
     ];
 
-    const [loading, setLoading] = useState(true);
+    const [loading] = useState(true);
 
-    // Navigate to roast page after loading completes
     useEffect(() => {
-        // Calculate total duration: number of states * duration per state
-        const totalDuration = loadingStates.length * 2000; // 2000ms per state
-
+        const totalDuration = loadingStates.length * 2000;
         const timer = setTimeout(() => {
-            // Navigate to roast page with film data
-            navigate('/roast', { state: { films: allFilms } });
+            navigate('/questions', { state: { films: allFilms } });
         }, totalDuration);
-
         return () => clearTimeout(timer);
-    }, [loadingStates.length, navigate, allFilms]);
+    }, []);
 
     return (
         <div className="min-h-screen">
@@ -74,7 +57,6 @@ function Loading() {
                 </ThemeProvider>
             </div>
 
-
             <MultiStepLoader
                 loadingStates={loadingStates}
                 loading={loading}
@@ -82,7 +64,6 @@ function Loading() {
                 loop={false}
             />
 
-            {/* Film Poster Marquee */}
             {filmsWithPosters.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 pb-4 pointer-events-none z-140">
                     <Marquee className="py-10">
