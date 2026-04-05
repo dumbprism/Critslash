@@ -12,6 +12,9 @@ import (
 	"google.golang.org/genai"
 )
 
+const model = "gemini-2.5-flash"
+const maxFilms = 10
+
 var client *genai.Client
 
 func InitGemini() error {
@@ -19,7 +22,6 @@ func InitGemini() error {
 	if api == "" {
 		return fmt.Errorf("GEMINI_API_KEY not set")
 	}
-
 	ctx := context.Background()
 	c, err := genai.NewClient(ctx, &genai.ClientConfig{APIKey: api})
 	if err != nil {
@@ -29,79 +31,105 @@ func InitGemini() error {
 	return nil
 }
 
-func GenerateRoast(films []types.FilmDetails, answers map[string]string) (*types.RoastFmt, error) {
+func ensureClient() error {
 	if client == nil {
-		if err := InitGemini(); err != nil {
-			return nil, err
-		}
+		return InitGemini()
 	}
+	return nil
+}
 
-	var filmSB strings.Builder
-	for _, film := range films {
-		filmSB.WriteString(fmt.Sprintf("- %s (Rating: %s)\n", film.FilmName, film.Rating))
+// filmList caps and formats the film list to keep token usage low.
+func filmList(films []types.FilmDetails) string {
+	if len(films) > maxFilms {
+		films = films[:maxFilms]
 	}
-
-	var answerSB strings.Builder
-	for q, a := range answers {
-		answerSB.WriteString(fmt.Sprintf("- %s → \"%s\"\n", q, a))
+	var sb strings.Builder
+	for _, f := range films {
+		sb.WriteString(fmt.Sprintf("- %s (%s)\n", f.FilmName, f.Rating))
 	}
+	return sb.String()
+}
 
-	prompt := fmt.Sprintf(`You are CritSlash — a ruthless, razor-tongued film critic AI built specifically to destroy people's egos through their movie taste.
-You are the Gordon Ramsay of film criticism: encyclopedic knowledge, zero tolerance for mediocrity, and a gift for the devastatingly specific insult.
-You do not summarise. You do not pad. Every sentence lands. Think of a roast comedian who watched 10,000 films and kept score on everyone.
-
-Here is what you know about this person:
-
-FILMS THEY RECENTLY WATCHED:
-%s
-ANSWERS THEY GAVE:
-%s
-
-Write a LONG, thorough roast using BOTH their films AND their answers. Follow these rules exactly:
-
-TITLE: One punchy, devastating headline (max 10 words). Specific to this person. No generics.
-
-ROAST: Write 4 full paragraphs. Each paragraph must be 3-4 sentences. Total word count must exceed 200 words.
-- Paragraph 1: Open with a big-swing observation about the overall pattern in their watch history. Name specific films.
-- Paragraph 2: Dig into their worst or most embarrassing choices. Be precise and merciless. Quote their ratings against them.
-- Paragraph 3: Weave in their survey answers. Show how their answers confirm what their film choices already revealed about them. Be specific and personal.
-- Paragraph 4: Close with a final verdict that sums up their entire cinematic identity in the most unflattering terms possible, but leave them laughing.
-
-SCORE: An integer 0-100. 0 is catastrophic, 100 is a cinephile god. Most people land 20-65. Factor in both films and answers. Be harsh but fair.
-
-Return ONLY a JSON object: { "title": "...", "roast": "...", "score": 42 }
-The "roast" field must contain all 4 paragraphs separated by a blank line (\n\n). No markdown. No extra keys.`,
-		filmSB.String(), answerSB.String())
-
+func call(prompt string) (string, error) {
 	ctx := context.Background()
 	result, err := client.Models.GenerateContent(
-		ctx,
-		"gemini-3-flash-preview",
-		genai.Text(prompt),
-		&genai.GenerateContentConfig{
-			ResponseMIMEType: "application/json",
-		},
+		ctx, model, genai.Text(prompt),
+		&genai.GenerateContentConfig{ResponseMIMEType: "application/json"},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("gemini error: %w", err)
+		return "", fmt.Errorf("gemini: %w", err)
+	}
+	raw := strings.TrimSpace(result.Text())
+	return stripFences(raw), nil
+}
+
+func GenerateQuestions(films []types.FilmDetails) ([]types.GeneratedQuestion, error) {
+	if err := ensureClient(); err != nil {
+		return nil, err
 	}
 
-	raw := strings.TrimSpace(result.Text())
+	prompt := fmt.Sprintf(
+		`Film critic AI. Given these films, write 4 probing questions about the viewer's taste.
+Each question must reference specific films/patterns from the list. 4 options each. Witty, slightly judgmental tone.
+Films: %s
+Return JSON array only: [{"id":"q1","question":"...","options":["...","...","...","..."]},...] (4 items)`,
+		filmList(films))
 
-	// Strip accidental markdown fences just in case
-	if strings.HasPrefix(raw, "```") {
-		lines := strings.Split(raw, "\n")
-		end := len(lines) - 1
-		for end > 0 && strings.TrimSpace(lines[end]) == "```" {
-			end--
-		}
-		raw = strings.Join(lines[1:end+1], "\n")
+	raw, err := call(prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	var questions []types.GeneratedQuestion
+	if err := json.Unmarshal([]byte(raw), &questions); err != nil {
+		return nil, fmt.Errorf("parse questions: %w", err)
+	}
+	return questions, nil
+}
+
+func GenerateRoast(films []types.FilmDetails, qa []types.QuestionAnswer) (*types.RoastFmt, error) {
+	if err := ensureClient(); err != nil {
+		return nil, err
+	}
+
+	var qaSB strings.Builder
+	for _, item := range qa {
+		qaSB.WriteString(fmt.Sprintf("Q: %s | A: %s\n", item.Question, item.Answer))
+	}
+
+	prompt := fmt.Sprintf(
+		`You are CritSlash, a savage film critic roast comedian. Destroy this person's taste.
+
+Films (recent): %s
+Their answers: %s
+Write a roast with:
+- TITLE: punchy headline, max 10 words, specific to them
+- ROAST: 4 paragraphs x 3-4 sentences (200+ words). Para1: overall pattern. Para2: worst choices+ratings. Para3: use their answers against them. Para4: final verdict.
+- SCORE: 0-100 integer (most land 20-65, be harsh)
+
+JSON only: {"title":"...","roast":"p1\n\np2\n\np3\n\np4","score":42}`,
+		filmList(films), qaSB.String())
+
+	raw, err := call(prompt)
+	if err != nil {
+		return nil, err
 	}
 
 	var roast types.RoastFmt
 	if err := json.Unmarshal([]byte(raw), &roast); err != nil {
-		return nil, fmt.Errorf("failed to parse gemini response: %w\nraw: %s", err, raw)
+		return nil, fmt.Errorf("parse roast: %w", err)
 	}
-
 	return &roast, nil
+}
+
+func stripFences(s string) string {
+	if !strings.HasPrefix(s, "```") {
+		return s
+	}
+	lines := strings.Split(s, "\n")
+	end := len(lines) - 1
+	for end > 0 && strings.TrimSpace(lines[end]) == "```" {
+		end--
+	}
+	return strings.Join(lines[1:end+1], "\n")
 }

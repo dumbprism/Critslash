@@ -8,24 +8,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RoastHandler(ctx *gin.Context) {
-	var req types.RoastRequest
+func QuestionsHandler(ctx *gin.Context) {
+	var films []types.FilmDetails
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&films); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
-	if len(req.Films) == 0 {
+	if len(films) == 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no films provided"})
 		return
 	}
 
-	roast, err := utils.GenerateRoast(req.Films, req.QA)
+	questions, err := utils.GenerateQuestions(films)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, roast)
+	ctx.JSON(http.StatusOK, questions)
 }

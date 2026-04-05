@@ -28,7 +28,7 @@ export default function Generating() {
     const location = useLocation()
     const navigate = useNavigate()
     const films = (location.state?.films as Film[]) || []
-    const answers = (location.state?.answers as Record<string, string>) || {}
+    const qa    = (location.state?.qa    as { question: string; answer: string }[]) || []
 
     const [loading] = useState(true)
     const roastResultRef  = useRef<RoastFmt | null>(null)
@@ -52,7 +52,7 @@ export default function Generating() {
         fetch("http://localhost:8080/roast", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ films, answers }),
+            body: JSON.stringify({ films, qa }),
         })
             .then(res => {
                 if (!res.ok) throw new Error("Failed to generate roast")

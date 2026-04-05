@@ -6,9 +6,20 @@ type FilmDetails struct {
 	FilmPoster string `json:"film_poster"`
 }
 
+type GeneratedQuestion struct {
+	ID       string   `json:"id"`
+	Question string   `json:"question"`
+	Options  []string `json:"options"`
+}
+
+type QuestionAnswer struct {
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+}
+
 type RoastRequest struct {
-	Films   []FilmDetails     `json:"films"`
-	Answers map[string]string `json:"answers"`
+	Films []FilmDetails    `json:"films"`
+	QA    []QuestionAnswer `json:"qa"`
 }
 
 type RoastFmt struct {

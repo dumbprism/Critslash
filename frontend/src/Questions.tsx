@@ -10,64 +10,31 @@ interface Film {
     film_poster: string
 }
 
+interface GeneratedQuestion {
+    id: string
+    question: string
+    options: string[]
+}
+
+interface QuestionAnswer {
+    question: string
+    answer: string
+}
+
 type ChatEntry =
     | { kind: "bot";     id: string; text: string }
     | { kind: "typing";  id: string }
     | { kind: "options"; id: string; qIndex: number; answered: boolean }
     | { kind: "user";    id: string; text: string }
 
-const QUESTIONS = [
-    {
-        id: "pick_method",
-        question: "How do you usually pick your next watch?",
-        options: [
-            "Letterboxd lists & deep rabbit holes",
-            "Whatever the algorithm throws at me",
-            "A friend recommended it",
-            "Pure, unhinged vibes",
-        ],
-    },
-    {
-        id: "rating_philosophy",
-        question: "What's your film rating philosophy?",
-        options: [
-            "Half stars and detailed logs",
-            "5 stars or straight to the bin",
-            "I barely rate anything",
-            "Stars plus a full essay, every time",
-        ],
-    },
-    {
-        id: "viewing_preference",
-        question: "Cinema hall or home screen?",
-        options: [
-            "Cinema is a sacred ritual",
-            "Couch, snacks, comfort always",
-            "Laptop in bed, subtitles on",
-            "Wherever — I just watch",
-        ],
-    },
-    {
-        id: "red_flag",
-        question: "Biggest red flag in a film for you?",
-        options: [
-            "CGI-everything blockbusters",
-            "Cheap jump-scare horror",
-            "Anything over 2.5 hours",
-            "Films that over-explain their message",
-        ],
-    },
-]
-
 function TypingIndicator() {
     return (
         <div className="flex items-center gap-1 px-4 py-3">
             {[0, 1, 2].map(i => (
-                <motion.span
+                <span
                     key={i}
-                    className="w-2 h-2 rounded-full bg-black/30 dark:bg-white/40 block"
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+                    className="w-2 h-2 rounded-full bg-black/30 dark:bg-white/40 block animate-bounce"
+                    style={{ animationDelay: `${i * 150}ms` }}
                 />
             ))}
         </div>
@@ -79,43 +46,81 @@ export default function Questions() {
     const navigate = useNavigate()
     const films = (location.state?.films as Film[]) || []
 
+    const [questions, setQuestions] = useState<GeneratedQuestion[] | null>(null)
     const [chat, setChat] = useState<ChatEntry[]>([
-        { kind: "bot",     id: "bot-0",  text: QUESTIONS[0].question },
-        { kind: "options", id: "opts-0", qIndex: 0, answered: false },
+        { kind: "typing", id: "intro-typing" },
     ])
-    const [answers, setAnswers] = useState<Record<string, string>>({})
-    const [locked, setLocked] = useState(false)
+    const [qa, setQA] = useState<QuestionAnswer[]>([])
+    const [locked, setLocked] = useState(true)
     const bottomRef = useRef<HTMLDivElement>(null)
+    const fetchedRef = useRef(false)
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [chat])
 
+    // Fetch LLM-generated questions on mount
+    useEffect(() => {
+        if (fetchedRef.current) return
+        fetchedRef.current = true
+
+        fetch("http://localhost:8080/questions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(films),
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to generate questions")
+                return res.json()
+            })
+            .then((data: GeneratedQuestion[]) => {
+                setQuestions(data)
+                // Replace the intro typing indicator with first question
+                setChat([
+                    { kind: "bot",     id: "bot-0",  text: data[0].question },
+                    { kind: "options", id: "opts-0", qIndex: 0, answered: false },
+                ])
+                setLocked(false)
+            })
+            .catch(() => {
+                setChat([{
+                    kind: "bot",
+                    id: "bot-error",
+                    text: "Hmm, I couldn't load your questions. Try refreshing.",
+                }])
+            })
+    }, [])
+
     function handleSelect(option: string, qIndex: number) {
-        if (locked) return
+        if (locked || !questions) return
         setLocked(true)
 
-        const q = QUESTIONS[qIndex]
-        const updatedAnswers = { ...answers, [q.id]: option }
-        setAnswers(updatedAnswers)
+        const updatedQA = [...qa, { question: questions[qIndex].question, answer: option }]
+        setQA(updatedQA)
 
+        // Fade out options then remove from DOM so they don't leave a blank gap
         setChat(prev =>
             prev.map(e => e.id === `opts-${qIndex}` ? { ...e, answered: true } as ChatEntry : e)
         )
+        setTimeout(() => {
+            setChat(prev => prev.filter(e => e.id !== `opts-${qIndex}`))
+        }, 260)
 
+        // Append user bubble
         setTimeout(() => {
             setChat(prev => [...prev, { kind: "user", id: `user-${qIndex}`, text: option }])
         }, 150)
 
-        const isLast = qIndex === QUESTIONS.length - 1
+        const isLast = qIndex === questions.length - 1
 
         if (isLast) {
             setTimeout(() => {
-                navigate("/generating", { state: { films, answers: updatedAnswers } })
+                navigate("/generating", { state: { films, qa: updatedQA } })
             }, 500)
             return
         }
 
+        // Typing indicator → next question
         setTimeout(() => {
             setChat(prev => [...prev, { kind: "typing", id: "typing-next" }])
         }, 500)
@@ -124,7 +129,7 @@ export default function Questions() {
             const next = qIndex + 1
             setChat(prev => [
                 ...prev.filter(e => e.id !== "typing-next"),
-                { kind: "bot",     id: `bot-${next}`,  text: QUESTIONS[next].question },
+                { kind: "bot",     id: `bot-${next}`,  text: questions[next].question },
                 { kind: "options", id: `opts-${next}`,  qIndex: next, answered: false },
             ])
             setLocked(false)
@@ -136,7 +141,7 @@ export default function Questions() {
             <Navbar />
 
             <div className="flex flex-col items-center min-h-screen pt-20 pb-10 px-4">
-                <div className="w-full max-w-lg flex flex-col gap-3 pt-6">
+                <div className="w-full max-w-lg flex flex-col gap-2 pt-6">
                     <AnimatePresence initial={false}>
                         {chat.map(entry => {
                             if (entry.kind === "bot") {
@@ -179,7 +184,7 @@ export default function Questions() {
                                 )
                             }
 
-                            if (entry.kind === "options") {
+                            if (entry.kind === "options" && questions) {
                                 return (
                                     <motion.div
                                         key={entry.id}
@@ -188,7 +193,7 @@ export default function Questions() {
                                         transition={{ duration: 0.25 }}
                                         className="grid grid-cols-2 gap-2 pl-1"
                                     >
-                                        {QUESTIONS[entry.qIndex].options.map(option => (
+                                        {questions[entry.qIndex].options.map(option => (
                                             <button
                                                 key={option}
                                                 disabled={entry.answered || locked}

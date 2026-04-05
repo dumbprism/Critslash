@@ -30,6 +30,7 @@ func main() {
 	})
 
 	router.GET("/films/:usrnm", handlers.GetDetails)
+	router.POST("/questions", handlers.QuestionsHandler)
 	router.POST("/roast", handlers.RoastHandler)
 	router.Run()
 
