@@ -155,19 +155,28 @@ func GenerateRecommendation(req types.RecommendRequest) (*types.Recommendation, 
 		}
 	}
 
+	var excludeSB strings.Builder
+	excludeSB.WriteString(watched)
+	if len(req.AlreadySuggested) > 0 {
+		excludeSB.WriteString("\nAlso already suggested to them (DO NOT repeat these either):\n")
+		for _, t := range req.AlreadySuggested {
+			excludeSB.WriteString(fmt.Sprintf("- %s\n", t))
+		}
+	}
+
 	prompt := fmt.Sprintf(
 		`You are a friendly film recommendation AI. Suggest ONE film for this person.
 
-Films they already watched (DO NOT recommend any of these): %s
+Films they already watched or were already suggested (DO NOT recommend any of these): %s
 Their preference: %s
 
 Rules:
-- Must not be any film in the watched list above
+- Must not be any film in the exclusion list above
 - Use simple, everyday language
 - Keep it fun and personal
 
 Return JSON only: {"title":"...","year":"2019","director":"...","description":"1-2 sentence plot summary","reason":"1-2 fun sentences on why this fits them"}`,
-		watched, pref)
+		excludeSB.String(), pref)
 
 	raw, err := call(prompt)
 	if err != nil {

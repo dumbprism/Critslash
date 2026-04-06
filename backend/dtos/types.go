@@ -29,10 +29,11 @@ type RoastFmt struct {
 }
 
 type RecommendRequest struct {
-	Films    []FilmDetails `json:"films"`
-	Genre    string        `json:"genre"`
-	Mood     string        `json:"mood"`
-	Surprise bool          `json:"surprise"`
+	Films            []FilmDetails `json:"films"`
+	Genre            string        `json:"genre"`
+	Mood             string        `json:"mood"`
+	Surprise         bool          `json:"surprise"`
+	AlreadySuggested []string      `json:"already_suggested"`
 }
 
 type Recommendation struct {

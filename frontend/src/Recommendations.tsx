@@ -51,13 +51,14 @@ export default function Recommendations() {
     const location = useLocation()
     const films = (location.state?.films as Film[]) || []
 
-    const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
-    const [selectedMood,  setSelectedMood]  = useState<string | null>(null)
+    const [selectedGenres, setSelectedGenres] = useState<string[]>([])
+    const [selectedMoods,  setSelectedMoods]  = useState<string[]>([])
     const [loading,   setLoading]   = useState(false)
     const [result,    setResult]    = useState<Recommendation | null>(null)
     const [poster,    setPoster]    = useState<string | null>(null)
     const [error,     setError]     = useState<string | null>(null)
     const [surprise,  setSurprise]  = useState(false)
+    const [alreadySuggested, setAlreadySuggested] = useState<string[]>([])
 
     async function fetchPoster(title: string, year: string): Promise<string | null> {
         try {
@@ -85,13 +86,15 @@ export default function Recommendations() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     films,
-                    genre:    isSurprise ? "" : (selectedGenre ?? ""),
-                    mood:     isSurprise ? "" : (selectedMood  ?? ""),
-                    surprise: isSurprise,
+                    genre:             isSurprise ? "" : selectedGenres.join(", "),
+                    mood:              isSurprise ? "" : selectedMoods.join(", "),
+                    surprise:          isSurprise,
+                    already_suggested: alreadySuggested,
                 }),
             })
             if (!res.ok) throw new Error("Failed to get recommendation")
             const data: Recommendation = await res.json()
+            setAlreadySuggested(prev => [...prev, data.title])
             setResult(data)
             const posterUrl = await fetchPoster(data.title, data.year)
             setPoster(posterUrl)
@@ -136,15 +139,15 @@ export default function Recommendations() {
                         transition={{ delay: 0.1, duration: 0.5 }}
                     >
                         <p className="text-xs uppercase tracking-widest text-black/40 dark:text-white/30 font-[apple-garamond-light]">
-                            Genre <span className="normal-case tracking-normal opacity-60">— optional</span>
+                            Genre
                         </p>
                         <div className="flex flex-wrap gap-2">
                             {GENRES.map(g => (
                                 <Chip
                                     key={g}
                                     label={g}
-                                    selected={selectedGenre === g}
-                                    onClick={() => setSelectedGenre(prev => prev === g ? null : g)}
+                                    selected={selectedGenres.includes(g)}
+                                    onClick={() => setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
                                 />
                             ))}
                         </div>
@@ -158,15 +161,15 @@ export default function Recommendations() {
                         transition={{ delay: 0.2, duration: 0.5 }}
                     >
                         <p className="text-xs uppercase tracking-widest text-black/40 dark:text-white/30 font-[apple-garamond-light]">
-                            Mood <span className="normal-case tracking-normal opacity-60">— optional</span>
+                            Mood
                         </p>
                         <div className="flex flex-wrap gap-2">
                             {MOODS.map(m => (
                                 <Chip
                                     key={m}
                                     label={m}
-                                    selected={selectedMood === m}
-                                    onClick={() => setSelectedMood(prev => prev === m ? null : m)}
+                                    selected={selectedMoods.includes(m)}
+                                    onClick={() => setSelectedMoods(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
                                 />
                             ))}
                         </div>
