@@ -12,7 +12,7 @@ import (
 	"google.golang.org/genai"
 )
 
-const model = "gemini-2.5-flash"
+const model = "gemini-3-flash-preview"
 const maxFilms = 10
 
 var client *genai.Client
