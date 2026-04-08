@@ -21,8 +21,6 @@ function Marqueelement() {
         "Psycho",
         "Pather Panchali"]
     const [moviePosters, setMoviePosters] = useState<MoviePoster[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchPosters = async () => {
@@ -57,9 +55,6 @@ function Marqueelement() {
                 setMoviePosters(posters)
             } catch (error) {
                 console.error('Error fetching movie posters:', error)
-                setError(error.message)
-            } finally {
-                setLoading(false)
             }
         }
 
