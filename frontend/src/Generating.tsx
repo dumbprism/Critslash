@@ -49,7 +49,7 @@ export default function Generating() {
     }
 
     useEffect(() => {
-        fetch("http://localhost:8080/roast", {
+        fetch("https://critslash.onrender.com/roast", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ films, qa }),

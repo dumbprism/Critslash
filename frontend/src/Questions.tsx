@@ -64,7 +64,7 @@ export default function Questions() {
         if (fetchedRef.current) return
         fetchedRef.current = true
 
-        fetch("http://localhost:8080/questions", {
+        fetch("https://critslash.onrender.com/questions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(films),

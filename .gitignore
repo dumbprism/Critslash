@@ -15,3 +15,5 @@ backend/roast
 
 # pnpm
 pnpm-debug.log
+.vercel
+.env*.local

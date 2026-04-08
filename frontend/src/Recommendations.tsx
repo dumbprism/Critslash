@@ -81,7 +81,7 @@ export default function Recommendations() {
         setSurprise(isSurprise)
 
         try {
-            const res = await fetch("http://localhost:8080/recommend", {
+            const res = await fetch("https://critslash.onrender.com/recommend", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
