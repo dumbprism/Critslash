@@ -49,7 +49,7 @@ export default function Generating() {
     }
 
     useEffect(() => {
-        fetch("https://critslash.onrender.com/roast", {
+        fetch(`${import.meta.env.VITE_API_URL}/roast`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ films, qa }),

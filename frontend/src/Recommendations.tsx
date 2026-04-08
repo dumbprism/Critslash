@@ -81,7 +81,7 @@ export default function Recommendations() {
         setSurprise(isSurprise)
 
         try {
-            const res = await fetch("https://critslash.onrender.com/recommend", {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/recommend`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

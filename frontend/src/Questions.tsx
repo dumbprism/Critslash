@@ -64,7 +64,7 @@ export default function Questions() {
         if (fetchedRef.current) return
         fetchedRef.current = true
 
-        fetch("https://critslash.onrender.com/questions", {
+        fetch(`${import.meta.env.VITE_API_URL}/questions`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(films),

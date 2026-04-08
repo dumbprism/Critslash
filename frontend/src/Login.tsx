@@ -30,7 +30,7 @@ function Login() {
         setError(null)
 
         try {
-            const response = await fetch(`https://critslash.onrender.com/films/${storeUsername}`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/films/${storeUsername}`)
 
             if (!response.ok) {
                 if (response.status === 404) throw new Error("Username not found")
