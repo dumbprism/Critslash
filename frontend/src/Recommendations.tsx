@@ -55,8 +55,11 @@ export default function Recommendations() {
     const films = (location.state?.films as Film[]) || []
     const { user } = useAuth()
 
+    const currentYear = new Date().getFullYear()
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
     const [selectedMoods,  setSelectedMoods]  = useState<string[]>([])
+    const [yearFrom, setYearFrom] = useState(1970)
+    const [yearTo,   setYearTo]   = useState(currentYear)
     const [loading,   setLoading]   = useState(false)
     const [result,    setResult]    = useState<Recommendation | null>(null)
     const [poster,    setPoster]    = useState<string | null>(null)
@@ -117,6 +120,8 @@ export default function Recommendations() {
                     mood:              isSurprise ? "" : selectedMoods.join(", "),
                     surprise:          isSurprise,
                     already_suggested: alreadySuggested,
+                    year_from:         yearFrom,
+                    year_to:           yearTo,
                 }),
             })
             if (!res.ok) throw new Error("Failed to get recommendation")
@@ -230,12 +235,69 @@ export default function Recommendations() {
                         </div>
                     </motion.div>
 
+                    {/* Year range */}
+                    <motion.div
+                        className="flex flex-col gap-4"
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                    >
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs uppercase tracking-widest text-black/40 dark:text-white/30 font-[apple-garamond-light]">
+                                Era
+                            </p>
+                            <span className="text-sm font-[apple-garamond-light] text-[#424FFF]">
+                                {yearFrom} — {yearTo}
+                            </span>
+                        </div>
+                        <div className="relative flex flex-col gap-3">
+                            {/* Track */}
+                            <div className="relative h-1 rounded-full bg-black/10 dark:bg-white/10">
+                                <div
+                                    className="absolute h-1 rounded-full bg-[#424FFF]"
+                                    style={{
+                                        left:  `${((yearFrom - 1900) / (currentYear - 1900)) * 100}%`,
+                                        right: `${((currentYear - yearTo)  / (currentYear - 1900)) * 100}%`,
+                                    }}
+                                />
+                            </div>
+                            {/* From slider */}
+                            <input
+                                type="range"
+                                min={1900}
+                                max={currentYear}
+                                value={yearFrom}
+                                onChange={e => {
+                                    const v = Number(e.target.value)
+                                    if (v < yearTo) setYearFrom(v)
+                                }}
+                                className="absolute w-full h-1 appearance-none bg-transparent cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#424FFF] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
+                            />
+                            {/* To slider */}
+                            <input
+                                type="range"
+                                min={1900}
+                                max={currentYear}
+                                value={yearTo}
+                                onChange={e => {
+                                    const v = Number(e.target.value)
+                                    if (v > yearFrom) setYearTo(v)
+                                }}
+                                className="absolute w-full h-1 appearance-none bg-transparent cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#424FFF] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
+                            />
+                        </div>
+                        <div className="flex justify-between text-xs text-black/30 dark:text-white/30 font-[apple-garamond-light]">
+                            <span>1900</span>
+                            <span>{currentYear}</span>
+                        </div>
+                    </motion.div>
+
                     {/* Action buttons */}
                     <motion.div
                         className="flex flex-col sm:flex-row gap-3"
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
+                        transition={{ delay: 0.4, duration: 0.5 }}
                     >
                         <button
                             onClick={() => fetchRecommendation(false)}

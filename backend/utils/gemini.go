@@ -137,6 +137,15 @@ func GenerateRecommendation(req types.RecommendRequest) (*types.Recommendation, 
 
 	watched := filmList(req.Films)
 
+	yearFrom := req.YearFrom
+	yearTo := req.YearTo
+	if yearFrom == 0 {
+		yearFrom = 1900
+	}
+	if yearTo == 0 {
+		yearTo = 2100
+	}
+
 	var pref string
 	if req.Surprise {
 		pref = "Pick anything that fits their taste. Be bold and unexpected."
@@ -169,14 +178,16 @@ func GenerateRecommendation(req types.RecommendRequest) (*types.Recommendation, 
 
 Films they already watched or were already suggested (DO NOT recommend any of these): %s
 Their preference: %s
+Year range constraint: ONLY suggest a film released between %d and %d (inclusive). This is a hard rule — do not suggest any film outside this range.
 
 Rules:
 - Must not be any film in the exclusion list above
+- Must be released between %d and %d
 - Use simple, everyday language
 - Keep it fun and personal
 
 Return JSON only: {"title":"...","year":"2019","director":"...","description":"3-4 sentence plot summary that paints a vivid picture of the film","reason":"2-3 fun sentences on why this fits them specifically"}`,
-		excludeSB.String(), pref)
+		excludeSB.String(), pref, yearFrom, yearTo, yearFrom, yearTo)
 
 	raw, err := call(prompt)
 	if err != nil {

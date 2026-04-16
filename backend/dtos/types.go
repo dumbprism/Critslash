@@ -34,6 +34,8 @@ type RecommendRequest struct {
 	Mood             string        `json:"mood"`
 	Surprise         bool          `json:"surprise"`
 	AlreadySuggested []string      `json:"already_suggested"`
+	YearFrom         int           `json:"year_from"`
+	YearTo           int           `json:"year_to"`
 }
 
 type Recommendation struct {
