@@ -1,9 +1,11 @@
-import { useState } from "react"
-import { useLocation } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import { ThemeProvider } from "./components/theme-provider"
 import Navbar from "./elements/Navbar"
 import { motion, AnimatePresence } from "motion/react"
-import { Shuffle, RefreshCw } from "lucide-react"
+import { Shuffle, RefreshCw, Bookmark, BookmarkCheck } from "lucide-react"
+import { useAuth } from "./contexts/AuthContext"
+import { supabase } from "@/lib/supabase"
 
 interface Film {
     film_name: string
@@ -49,7 +51,9 @@ function Chip({ label, selected, onClick }: { label: string; selected: boolean; 
 
 export default function Recommendations() {
     const location = useLocation()
+    const navigate = useNavigate()
     const films = (location.state?.films as Film[]) || []
+    const { user } = useAuth()
 
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
     const [selectedMoods,  setSelectedMoods]  = useState<string[]>([])
@@ -59,6 +63,15 @@ export default function Recommendations() {
     const [error,     setError]     = useState<string | null>(null)
     const [surprise,  setSurprise]  = useState(false)
     const [alreadySuggested, setAlreadySuggested] = useState<string[]>([])
+    const [saved,     setSaved]     = useState(false)
+    const [saving,    setSaving]    = useState(false)
+    const [saveMsg,   setSaveMsg]   = useState<string | null>(null)
+
+    // Reset saved state when a new recommendation loads
+    useEffect(() => {
+        setSaved(false)
+        setSaveMsg(null)
+    }, [result?.title])
 
     async function fetchPoster(title: string, year: string): Promise<string | null> {
         try {
@@ -103,6 +116,33 @@ export default function Recommendations() {
         } finally {
             setLoading(false)
         }
+    }
+
+    async function saveToWatchlist() {
+        if (!user) {
+            navigate('/signin')
+            return
+        }
+        if (!result || saved) return
+
+        setSaving(true)
+        const { error } = await supabase.from('watchlist').upsert({
+            user_id: user.id,
+            film_title: result.title,
+            film_year: result.year || null,
+            film_director: result.director || null,
+            film_description: result.description || null,
+            film_reason: result.reason || null,
+            film_poster: poster || null,
+        }, { onConflict: 'user_id,film_title' })
+
+        if (error) {
+            setSaveMsg('Failed to save. Try again.')
+        } else {
+            setSaved(true)
+            setSaveMsg(null)
+        }
+        setSaving(false)
     }
 
     function tryAnother() {
@@ -269,17 +309,40 @@ export default function Recommendations() {
                                     </p>
                                 </div>
 
-                                {/* Try another */}
-                                <button
-                                    onClick={tryAnother}
-                                    disabled={loading}
-                                    className="self-start flex items-center gap-2 text-sm text-black/40 dark:text-white/40
-                                               hover:text-[#424FFF] dark:hover:text-white font-[apple-garamond-light]
-                                               transition-colors duration-150 disabled:opacity-40"
-                                >
-                                    <RefreshCw size={13} />
-                                    Try another
-                                </button>
+                                {/* Bottom row: Try another + Save to watchlist */}
+                                <div className="flex items-center justify-between">
+                                    <button
+                                        onClick={tryAnother}
+                                        disabled={loading}
+                                        className="flex items-center gap-2 text-sm text-black/40 dark:text-white/40
+                                                   hover:text-[#424FFF] dark:hover:text-white font-[apple-garamond-light]
+                                                   transition-colors duration-150 disabled:opacity-40"
+                                    >
+                                        <RefreshCw size={13} />
+                                        Try another
+                                    </button>
+
+                                    <div className="flex items-center gap-2">
+                                        {saveMsg && (
+                                            <span className="text-xs text-red-500 font-[apple-garamond-light]">{saveMsg}</span>
+                                        )}
+                                        <button
+                                            onClick={saveToWatchlist}
+                                            disabled={saving || saved}
+                                            className={`flex items-center gap-2 text-sm font-[apple-garamond-light]
+                                                        transition-colors duration-150 disabled:cursor-not-allowed
+                                                        ${saved
+                                                            ? "text-[#424FFF] dark:text-[#6b77ff]"
+                                                            : "text-black/40 dark:text-white/40 hover:text-[#424FFF] dark:hover:text-white"
+                                                        }`}
+                                        >
+                                            {saved
+                                                ? <><BookmarkCheck size={14} /> Saved</>
+                                                : <><Bookmark size={14} /> {user ? (saving ? 'Saving...' : 'Save to watchlist') : 'Sign in to save'}</>
+                                            }
+                                        </button>
+                                    </div>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
