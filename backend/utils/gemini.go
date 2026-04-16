@@ -175,7 +175,7 @@ Rules:
 - Use simple, everyday language
 - Keep it fun and personal
 
-Return JSON only: {"title":"...","year":"2019","director":"...","description":"1-2 sentence plot summary","reason":"1-2 fun sentences on why this fits them"}`,
+Return JSON only: {"title":"...","year":"2019","director":"...","description":"3-4 sentence plot summary that paints a vivid picture of the film","reason":"2-3 fun sentences on why this fits them specifically"}`,
 		excludeSB.String(), pref)
 
 	raw, err := call(prompt)

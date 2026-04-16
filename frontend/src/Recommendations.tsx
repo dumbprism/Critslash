@@ -66,6 +66,7 @@ export default function Recommendations() {
     const [saved,     setSaved]     = useState(false)
     const [saving,    setSaving]    = useState(false)
     const [saveMsg,   setSaveMsg]   = useState<string | null>(null)
+    const [platforms, setPlatforms] = useState<{ name: string; logo: string }[]>([])
 
     // Reset saved state when a new recommendation loads
     useEffect(() => {
@@ -73,16 +74,28 @@ export default function Recommendations() {
         setSaveMsg(null)
     }, [result?.title])
 
-    async function fetchPoster(title: string, year: string): Promise<string | null> {
+    async function fetchTMDBData(title: string, year: string): Promise<{ poster: string | null; platforms: { name: string; logo: string }[] }> {
         try {
             const key = import.meta.env.VITE_TMDB_API_KEY
-            const url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${encodeURIComponent(title)}&year=${year}`
-            const res = await fetch(url)
-            const data = await res.json()
-            const path = data.results?.[0]?.poster_path
-            return path ? `https://image.tmdb.org/t/p/w500${path}` : null
+            const searchUrl = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${encodeURIComponent(title)}&year=${year}`
+            const searchRes = await fetch(searchUrl)
+            const searchData = await searchRes.json()
+            const movie = searchData.results?.[0]
+            if (!movie) return { poster: null, platforms: [] }
+
+            const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null
+
+            const providerRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${key}`)
+            const providerData = await providerRes.json()
+            const flatrate = providerData.results?.US?.flatrate ?? providerData.results?.IN?.flatrate ?? []
+            const platforms = flatrate.slice(0, 5).map((p: { provider_name: string; logo_path: string }) => ({
+                name: p.provider_name,
+                logo: `https://image.tmdb.org/t/p/original${p.logo_path}`,
+            }))
+
+            return { poster, platforms }
         } catch {
-            return null
+            return { poster: null, platforms: [] }
         }
     }
 
@@ -90,6 +103,7 @@ export default function Recommendations() {
         setLoading(true)
         setResult(null)
         setPoster(null)
+        setPlatforms([])
         setError(null)
         setSurprise(isSurprise)
 
@@ -109,8 +123,9 @@ export default function Recommendations() {
             const data: Recommendation = await res.json()
             setAlreadySuggested(prev => [...prev, data.title])
             setResult(data)
-            const posterUrl = await fetchPoster(data.title, data.year)
+            const { poster: posterUrl, platforms: streamingPlatforms } = await fetchTMDBData(data.title, data.year)
             setPoster(posterUrl)
+            setPlatforms(streamingPlatforms)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Something went wrong")
         } finally {
@@ -308,6 +323,23 @@ export default function Recommendations() {
                                         {result.description}
                                     </p>
                                 </div>
+
+                                {/* Streaming platforms */}
+                                {platforms.length > 0 && (
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-xs uppercase tracking-widest text-black/30 dark:text-white/30 font-[apple-garamond-light]">
+                                            Where to watch
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {platforms.map(p => (
+                                                <div key={p.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                                                    <img src={p.logo} alt={p.name} className="w-4 h-4 rounded-sm object-cover" />
+                                                    <span className="text-xs font-[apple-garamond-light] text-black/70 dark:text-white/70">{p.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Bottom row: Try another + Save to watchlist */}
                                 <div className="flex items-center justify-between">
