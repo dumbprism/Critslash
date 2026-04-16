@@ -8,6 +8,7 @@ import Generating from './Generating'
 import Roast from './Roast'
 import Recommendations from './Recommendations'
 import Auth from './Auth'
+import AuthCallback from './AuthCallback'
 import Watchlist from './Watchlist'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/roast" element={<Roast />} />
           <Route path="/recommendations" element={<Recommendations />} />
           <Route path="/signin" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/watchlist" element={<Watchlist />} />
         </Routes>
       </AuthProvider>

@@ -35,7 +35,7 @@ export default function Auth() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: `${window.location.origin}/recommendations`,
+                redirectTo: `${window.location.origin}/auth/callback`,
             },
         })
         if (error) {
