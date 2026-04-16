@@ -5,23 +5,26 @@ import Navbar from "./elements/Navbar"
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from "react-router-dom"
 import { TextGenerateEffect } from "./components/ui/text-generate-effect";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 function Login() {
     const navigate = useNavigate();
     const [showInput, setShowInput] = useState(false);
     const [storeUsername, setUsername] = useState("")
+    const usernameRef = useRef("")
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         setUsername(e.target.value)
+        usernameRef.current = e.target.value
         setError(null)
     }
 
     async function handleSubmit() {
-        if (!storeUsername.trim()) {
+        const username = usernameRef.current
+        if (!username.trim()) {
             setError("Please enter a username")
             return
         }
@@ -30,7 +33,7 @@ function Login() {
         setError(null)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/films/${storeUsername}`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/films/${username}`)
 
             if (!response.ok) {
                 if (response.status === 404) throw new Error("Username not found")
