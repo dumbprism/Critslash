@@ -3,7 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { ThemeProvider } from "./components/theme-provider"
 import Navbar from "./elements/Navbar"
 import { motion } from "motion/react"
-import { Share2, Loader2, Clapperboard } from "lucide-react"
+import { Share2, Loader2, Clapperboard, Bookmark, BookmarkCheck } from "lucide-react"
+import { useAuth } from "./contexts/AuthContext"
+import { supabase } from "@/lib/supabase"
 
 interface RoastFmt {
     title: string
@@ -131,8 +133,34 @@ function Roast() {
     const error  = (location.state?.error  as string)   ?? null
     const films  = (location.state?.films  as { film_name: string; rating: string; film_poster: string }[]) ?? []
 
+    const { user } = useAuth()
     const shareCardRef = useRef<HTMLDivElement>(null)
     const [sharing, setSharing] = useState(false)
+    const [saved,   setSaved]   = useState(false)
+    const [saving,  setSaving]  = useState(false)
+    const [saveMsg, setSaveMsg] = useState<string | null>(null)
+
+    async function saveRoast() {
+        if (!roast) return
+        if (!user) {
+            navigate('/signin')
+            return
+        }
+        setSaving(true)
+        setSaveMsg(null)
+        const { error } = await supabase.from('roasts').upsert({
+            user_id: user.id,
+            title:   roast.title,
+            roast:   roast.roast,
+            score:   roast.score,
+        }, { onConflict: 'user_id,title' })
+        if (error) {
+            setSaveMsg('Failed to save. Try again.')
+        } else {
+            setSaved(true)
+        }
+        setSaving(false)
+    }
 
     async function handleShare() {
         if (!shareCardRef.current || !roast) return
@@ -186,21 +214,40 @@ function Roast() {
                             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-[apple-garamond-light] leading-tight text-center text-black/90 dark:text-white/90">
                                 {roast.title}
                             </h1>
-                            <button
-                                onClick={handleShare}
-                                disabled={sharing}
-                                title="Share my roast"
-                                className="mt-1 shrink-0 p-2 rounded-full
-                                           border border-black/10 dark:border-white/10
-                                           bg-black/5 dark:bg-white/5
-                                           text-black/50 dark:text-white/50
-                                           hover:border-[#424FFF]/60 hover:text-[#424FFF] dark:hover:text-white
-                                           transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                                {sharing
-                                    ? <Loader2 size={16} className="animate-spin" />
-                                    : <Share2 size={16} />}
-                            </button>
+                            <div className="flex items-center gap-2 mt-1">
+                                <button
+                                    onClick={saveRoast}
+                                    disabled={saving || saved}
+                                    title={user ? "Save roast" : "Sign in to save"}
+                                    className={`shrink-0 p-2 rounded-full border transition-all duration-200
+                                                disabled:cursor-not-allowed
+                                                ${saved
+                                                    ? "border-[#424FFF] text-[#424FFF] bg-[#424FFF]/10"
+                                                    : "border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-black/50 dark:text-white/50 hover:border-[#424FFF]/60 hover:text-[#424FFF] dark:hover:text-white"
+                                                }`}
+                                >
+                                    {saving
+                                        ? <Loader2 size={16} className="animate-spin" />
+                                        : saved
+                                            ? <BookmarkCheck size={16} />
+                                            : <Bookmark size={16} />}
+                                </button>
+                                <button
+                                    onClick={handleShare}
+                                    disabled={sharing}
+                                    title="Download roast card"
+                                    className="shrink-0 p-2 rounded-full
+                                               border border-black/10 dark:border-white/10
+                                               bg-black/5 dark:bg-white/5
+                                               text-black/50 dark:text-white/50
+                                               hover:border-[#424FFF]/60 hover:text-[#424FFF] dark:hover:text-white
+                                               transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    {sharing
+                                        ? <Loader2 size={16} className="animate-spin" />
+                                        : <Share2 size={16} />}
+                                </button>
+                            </div>
                         </motion.div>
 
                         {/* Roast card */}
@@ -225,6 +272,11 @@ function Roast() {
                         >
                             <ScoreBar score={roast.score} />
                         </motion.div>
+
+                        {/* Save error */}
+                        {saveMsg && (
+                            <p className="text-red-500 text-sm font-[apple-garamond-light] text-center">{saveMsg}</p>
+                        )}
 
                         {/* Recommendations CTA */}
                         <motion.button

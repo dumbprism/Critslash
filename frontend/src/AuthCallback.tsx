@@ -10,6 +10,14 @@ export default function AuthCallback() {
             if (error) {
                 console.error('Auth callback error:', error.message)
                 navigate('/signin')
+                return
+            }
+
+            const pending = sessionStorage.getItem('pendingRoast')
+            if (pending) {
+                sessionStorage.removeItem('pendingRoast')
+                const { films, qa } = JSON.parse(pending)
+                navigate('/generating', { state: { films, qa } })
             } else {
                 navigate('/recommendations')
             }

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { ThemeProvider } from "./components/theme-provider"
 import Navbar from "./elements/Navbar"
 import { motion, AnimatePresence } from "motion/react"
+import { useAuth } from "./contexts/AuthContext"
 
 interface Film {
     film_name: string
@@ -45,6 +46,7 @@ export default function Questions() {
     const location = useLocation()
     const navigate = useNavigate()
     const films = (location.state?.films as Film[]) || []
+    const { user, loading: authLoading } = useAuth()
 
     const [questions, setQuestions] = useState<GeneratedQuestion[] | null>(null)
     const [chat, setChat] = useState<ChatEntry[]>([
@@ -115,7 +117,12 @@ export default function Questions() {
 
         if (isLast) {
             setTimeout(() => {
-                navigate("/generating", { state: { films, qa: updatedQA } })
+                if (!authLoading && !user) {
+                    sessionStorage.setItem("pendingRoast", JSON.stringify({ films, qa: updatedQA }))
+                    navigate("/signin")
+                } else {
+                    navigate("/generating", { state: { films, qa: updatedQA } })
+                }
             }, 500)
             return
         }
